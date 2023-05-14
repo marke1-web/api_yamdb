@@ -5,10 +5,10 @@ from api.views import (
     CategoriesViewSet,
     GenresViewSet,
     TitlesViewSet,
-)
 
 
 router = DefaultRouter()
+
 
 router.register('categories', CategoriesViewSet, basename='categories')
 router.register('genres', GenresViewSet, basename='genres')

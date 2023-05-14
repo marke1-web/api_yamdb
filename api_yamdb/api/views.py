@@ -1,3 +1,4 @@
+
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import (
@@ -15,6 +16,7 @@ from api.serializers import (
     TitleSerializer,
 )
 from reviews.models import Category, Genre, Title
+
 
 HTTP_METHOD = ('get', 'post', 'patch', 'delete')
 
