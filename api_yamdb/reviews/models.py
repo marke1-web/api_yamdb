@@ -3,7 +3,6 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 
-
 def validate_username(value):
     if not value or value == 'me':
         raise ValidationError(
@@ -24,18 +23,19 @@ class User(AbstractUser):
     username = models.CharField(
         max_length=150,
         unique=True,
-        verbose_name='Имя пользователяяяяяяяяяяяяяяяяяяяяяяяяяя',
+        verbose_name='Имя пользователя',
         validators=[UnicodeUsernameValidator(), validate_username],
     )
     email = models.EmailField(
         unique=True, verbose_name='Адрес электронной почты'
-=======
+    )
+
+
 class Review(models.Model):
     title = models.ForeignKey(on_delete=models.CASCADE, related_name='reviews')
     text = models.TextField(verbose_name='Текст')
     author = models.ForeignKey(
         on_delete=models.CASCADE, related_name='reviews'
-
     )
     score = models.PositiveSmallIntegerField(
         verbose_name='Оценка',
