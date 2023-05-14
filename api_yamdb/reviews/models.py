@@ -80,7 +80,6 @@ class GenreTitle(models.Model):
         return f'{self.title} принадлежит жанру {self.genre}'
 
 
-
 class Review(models.Model):
     title = models.ForeignKey(on_delete=models.CASCADE, related_name='reviews')
     text = models.TextField(verbose_name='Текст')
@@ -130,4 +129,3 @@ class Comment(models.Model):
 
     def __str__(self):
         return f'{self.author}, {self.pub_date}: {self.text}'
-
