@@ -1,4 +1,3 @@
-
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.pagination import PageNumberPagination
 from rest_framework import (
@@ -30,7 +29,7 @@ class ListCreateDestroyViewSet(
     pass
 
 
-class CategoriesViewSet(ListCreateDestroyViewSet):
+class CategoriesViewSet(ListCreateDestroyViewSet):  # aaaaaaaaaaaa
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [ReadOnly | AdminRules]
