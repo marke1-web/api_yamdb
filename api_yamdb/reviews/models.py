@@ -1,4 +1,3 @@
-
 from django.core.validators import MaxValueValidator, MinValueValidator
 
 from django.db import models
@@ -17,7 +16,9 @@ class Review(models.Model):
             MaxValueValidator(10, 'Оценка не может быть выше 10'),
         ],
     )
-    pub_date = models.DateTimeField(verbose_name='Дата ', auto_now_add=True)
+    pub_date = models.DateTimeField(
+        verbose_name='Дата публикации', auto_now_add=True
+    )
 
     class Meta:
         verbose_name = 'Отзыв'
