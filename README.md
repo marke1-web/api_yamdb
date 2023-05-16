@@ -70,3 +70,15 @@ pip install -r requirements.txt
 python3 manage.py migrate
 
 ```
+
+
+### Для добавления записей в бд введите в терминале команду
+```
+rm db.sqlite3 && python manage.py migrate && python manage.py add_data
+```
+
+
+### Стек технологий
+- Python
+- Django
+- SQLite
