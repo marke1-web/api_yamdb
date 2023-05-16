@@ -29,7 +29,14 @@ router.register('titles', TitlesViewSet, basename='titles')
 router.register('users', UserViewSet, basename='users')
 
 urlpatterns = [
-    path('auth/signup/', SignUPView.as_view()),
-    path('auth/token/', TokenView.as_view()),
-    path('', include(router.urls)),
+    path(
+        'v1/auth/',
+        include(
+            [
+                path('signup/', SignUPView.as_view()),
+                path('token/', TokenView.as_view()),
+            ]
+        ),
+    ),
+    path('v1/', include(router.urls)),
 ]

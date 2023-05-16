@@ -2,6 +2,7 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.db import models
 
 
@@ -26,7 +27,13 @@ class User(AbstractUser):
         max_length=150,
         unique=True,
         verbose_name='Имя пользователя',
-        validators=[UnicodeUsernameValidator(), validate_username],
+        validators=[
+            UnicodeUsernameValidator(),
+            RegexValidator(
+                regex=r'^(?!me$).*$',
+                message='Использовать "me" в качестве username запрещено',
+            ),
+        ],
     )
     email = models.EmailField(
         unique=True, verbose_name='Адрес электронной почты'

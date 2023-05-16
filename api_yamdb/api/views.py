@@ -1,22 +1,25 @@
-import random
 from django.conf import settings
 from django.core.mail import send_mail
+from django.db.models import Avg
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.decorators import action
+
+from rest_framework.exceptions import ValidationError
+from django.contrib.auth.tokens import default_token_generator
 from rest_framework.response import Response
 from rest_framework.pagination import PageNumberPagination
 from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.views import APIView
 from rest_framework import (
     filters,
-    mixins,
     permissions,
     status,
     viewsets,
 )
 
 from api.filters import TitlesFilter
+from api.mixins import ListCreateDestroyViewSet
 from api.permissions import ReadOnly, AdminRules, AccessOrReadOnly
 from api.serializers import (
     CategorySerializer,
@@ -34,15 +37,6 @@ from reviews.models import Category, Genre, Review, Title, User
 
 
 HTTP_METHOD = ('get', 'post', 'patch', 'delete')
-
-
-class ListCreateDestroyViewSet(
-    mixins.CreateModelMixin,
-    mixins.DestroyModelMixin,
-    mixins.ListModelMixin,
-    viewsets.GenericViewSet,
-):
-    pass
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -66,12 +60,13 @@ class UserViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(
                 request.user, data=request.data, partial=True
             )
-            if serializer.is_valid():
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            return Response(
-                serializer.errors, status=status.HTTP_400_BAD_REQUEST
-            )
+            try:
+                serializer.is_valid(raise_exception=True)
+            except ValidationError as e:
+                return Response(e.detail, status=status.HTTP_400_BAD_REQUEST)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
         serializer = self.get_serializer(request.user)
         return Response(serializer.data)
 
@@ -79,37 +74,17 @@ class UserViewSet(viewsets.ModelViewSet):
 class SignUPView(APIView):
     def post(self, request):
         serializer = SignUpSerializer(data=request.data)
-        if serializer.is_valid():
-            username = serializer.validated_data.get('username')
-            email = serializer.validated_data.get('email')
-            confirmation_code = random.randint(100000, 999999)
-            User.objects.create(
-                username=username,
-                email=email,
-                confirmation_code=confirmation_code,
-            )
-            send_mail(
-                subject='Confirmation code',
-                message=f'{confirmation_code}',
-                from_email=settings.FROM_EMAIL,
-                recipient_list=[
-                    email,
-                ],
-                fail_silently=False,
-            )
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        if User.objects.filter(
-            username=request.data.get('username'),
-            email=request.data.get('email'),
-        ).exists():
-            username = request.data.get('username')
-            email = request.data.get('email')
-            user = User.objects.get(username=username, email=email)
-            confirmation_code = random.randint(100000, 999999)
-            user.confirmation_code = confirmation_code
-            user.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.save()
+        confirmation_code = default_token_generator.make_token(user)
+        send_mail(
+            subject='Confirmation code',
+            message=f'{confirmation_code}',
+            from_email=settings.FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=False,
+        )
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class TokenView(APIView):
@@ -156,7 +131,7 @@ class GenresViewSet(ListCreateDestroyViewSet):
 
 
 class TitlesViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all()
+    queryset = Title.objects.annotate(Avg('reviews__score'))
     serializer_class = TitleSerializer
     permission_classes = [ReadOnly | AdminRules]
     filter_backends = (DjangoFilterBackend, filters.OrderingFilter)

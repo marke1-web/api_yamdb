@@ -1,8 +1,11 @@
-import statistics
+from django.db import IntegrityError
+from django.contrib.auth.validators import UnicodeUsernameValidator
+from django.core.validators import RegexValidator
 from rest_framework.serializers import (
     CharField,
+    EmailField,
+    IntegerField,
     ModelSerializer,
-    SerializerMethodField,
     SlugRelatedField,
     ValidationError,
 )
@@ -33,17 +36,11 @@ class GenreSerializer(ModelSerializer):
 class TitleSerializer(ModelSerializer):
     category = CategorySerializer()
     genre = GenreSerializer(many=True)
-    rating = SerializerMethodField()
+    rating = IntegerField(source='reviews__score__avg', read_only=True)
 
     class Meta:
         model = Title
         fields = '__all__'
-
-    def get_rating(self, obj):
-        scores = []
-        for review in obj.reviews.all():
-            scores.append(review.score)
-        return statistics.mean(scores) if scores else None
 
 
 class TitleCreateUpdateSerializer(ModelSerializer):
@@ -122,6 +119,27 @@ class SignUpSerializer(ModelSerializer):
     class Meta:
         model = User
         fields = ('username', 'email')
+
+    username = CharField(
+        max_length=150,
+        validators=[
+            UnicodeUsernameValidator(),
+            RegexValidator(
+                regex=r'^(?!me$).*$',
+                message='Использовать "me" в качестве username запрещено',
+            ),
+        ],
+    )
+    email = EmailField(max_length=254)
+
+    def create(self, validated_data):
+        try:
+            user = User.objects.get_or_create(**validated_data)[0]
+        except IntegrityError:
+            raise ValidationError(
+                'Это ошибка, появляющаяся если username или email уже занят '
+            )
+        return user
 
 
 class TokenSerializer(ModelSerializer):
