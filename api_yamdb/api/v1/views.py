@@ -18,10 +18,10 @@ from rest_framework import (
     viewsets,
 )
 
-from api.filters import TitlesFilter
+from api.v1.filters import TitlesFilter
 from api.mixins import ListCreateDestroyViewSet
-from api.permissions import ReadOnly, AdminRules, AccessOrReadOnly
-from api.serializers import (
+from api.v1.permissions import ReadOnly, AdminRules, AccessOrReadOnly
+from api.v1.serializers import (
     CategorySerializer,
     CommentSerializer,
     GenreSerializer,
