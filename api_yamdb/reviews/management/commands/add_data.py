@@ -5,13 +5,13 @@ from django.core.management.base import BaseCommand
 from django.conf import settings
 
 from reviews.models import (
-    Category,
-    Comment,
-    Genre,
-    GenreTitle,
-    Review,
     Title,
     User,
+    Category,
+    Genre,
+    Review,
+    Comment,
+    GenreTitle,
 )
 
 
@@ -24,17 +24,17 @@ class Command(BaseCommand):
         csv_files_path = os.path.join(settings.BASE_DIR, 'static/data')
         dir_path = os.path.abspath(csv_files_path)
 
-        files_models = [
-            ('users.csv', User),
-            ('category.csv', Category),
-            ('genre.csv', Genre),
-            ('titles.csv', Title),
-            ('review.csv', Review),
-            ('comments.csv', Comment),
-            ('genre_title.csv', GenreTitle),
-        ]
+        file_model_mapping = {
+            'users.csv': User,
+            'category.csv': Category,
+            'genre.csv': Genre,
+            'titles.csv': Title,
+            'review.csv': Review,
+            'comments.csv': Comment,
+            'genre_title.csv': GenreTitle,
+        }
 
-        for file, model in files_models:
+        for file, model in file_model_mapping.items():
             path = os.path.join(dir_path, file)
 
             obj_list = []
