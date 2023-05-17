@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.core.mail import send_mail
-from django.db.models import Avg, Q
+from django.db.models import Avg
 from django.contrib.auth.tokens import default_token_generator
 from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
@@ -74,29 +74,7 @@ class SignUPView(APIView):
     def post(self, request):
         serializer = SignUpSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        validated_data = serializer.validated_data
-        username = validated_data.get('username')
-        email = validated_data.get('email')
-
-        # Проверяем наличие пользователя с указанным username
-        existing_user = User.objects.filter(username=username).first()
-        if existing_user:
-            # Если найден пользователь с таким username,
-            # проверяем, что email отличается от текущего пользователя
-            if existing_user.email != email:
-                return Response(
-                    {
-                        'detail': 'Username уже зарегистрирован для другого пользователя.'
-                    },
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-            else:
-                # Если email совпадает, продолжаем существующую логику
-                user = existing_user
-        else:
-            # Создаем нового пользователя
-            user = serializer.save()
-
+        user = serializer.save()
         confirmation_code = default_token_generator.make_token(user)
         send_mail(
             subject='Confirmation code',

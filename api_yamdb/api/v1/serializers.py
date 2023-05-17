@@ -1,4 +1,3 @@
-from django.db import IntegrityError
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.core.validators import RegexValidator
 from rest_framework.serializers import (
@@ -133,19 +132,19 @@ class SignUpSerializer(ModelSerializer):
     email = EmailField(max_length=254)
 
     def create(self, validated_data):
-        username = validated_data['username']
-        email = validated_data['email']
-
-        if User.objects.filter(username=username).exists():
-            raise ValidationError('Это имя пользователя уже занято.')
-
-        if User.objects.filter(email=email).exists():
+        existing_user_by_username = User.objects.filter(
+            username=validated_data.get('username')
+        ).first()
+        existing_user_by_email = User.objects.filter(
+            email=validated_data.get('email')
+        ).first()
+        if any([existing_user_by_username, existing_user_by_email]):
+            if existing_user_by_username == existing_user_by_email:
+                return existing_user_by_username
             raise ValidationError(
-                'Этот адрес электронной почты уже зарегистрирован.'
+                'Email уже зарегистрирован для другого пользователя.'
             )
-
-        user = User.objects.create_user(username=username, email=email)
-        return user
+        return User.objects.create(**validated_data)
 
 
 class TokenSerializer(ModelSerializer):
