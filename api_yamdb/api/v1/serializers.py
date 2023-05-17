@@ -133,12 +133,18 @@ class SignUpSerializer(ModelSerializer):
     email = EmailField(max_length=254)
 
     def create(self, validated_data):
-        try:
-            user = User.objects.get_or_create(**validated_data)[0]
-        except IntegrityError:
+        username = validated_data['username']
+        email = validated_data['email']
+
+        if User.objects.filter(username=username).exists():
+            raise ValidationError('Это имя пользователя уже занято.')
+
+        if User.objects.filter(email=email).exists():
             raise ValidationError(
-                'Это ошибка, появляющаяся если username или email уже занят '
+                'Этот адрес электронной почты уже зарегистрирован.'
             )
+
+        user = User.objects.create_user(username=username, email=email)
         return user
 
 

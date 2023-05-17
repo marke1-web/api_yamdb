@@ -6,14 +6,6 @@ from django.core.validators import RegexValidator
 from django.db import models
 
 
-def validate_username(value):
-    if not value or value == 'me':
-        raise ValidationError(
-            'Использовать никнейм "me" в качестве username запрещено'
-        )
-    return value
-
-
 class User(AbstractUser):
     ADMIN = 'admin'
     MODERATOR = 'moderator'
