@@ -76,6 +76,10 @@ class SignUPView(APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
         confirmation_code = default_token_generator.make_token(user)
+        user.confirmation_code = (
+            confirmation_code  # Присвоение значения confirmation_code
+        )
+        user.save()  # Сохранение пользователя с заполненным confirmation_code
         send_mail(
             subject='Confirmation code',
             message=f'{confirmation_code}',
